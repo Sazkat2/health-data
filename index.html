@@ -44,9 +44,9 @@
 
     <script id="hackSpotsTable" type="text/html">
         <table>
-   	<tr><th>I understand that the information I submit will be available to the general public.</th><th>My current skin temperature:</th><th>I am:</th><th>How many hours of sleep did you have last night?</th><th>Did you eat breakfast this morning?</tr>
+   	<tr><th>My current skin temperature:</th><th>I am:</th><th>How many hours of sleep did you have last night?</th><th>Did you eat breakfast this morning?</tr>
             {{#rows}}
-                <tr id="{{rowNumber}}" class="spotRow"><td>{{•MY BODY•       My current skin temperature on my index finger is:}}</td><td>{{•MY BEHAVIOR•      The # of steps I've taken today is:}}</td></tr>
+                <tr id="{{rowNumber}}" class="spotRow"><td>{{mycurrentskintemperature}}</td><td>{{iam}}</td><td>{{howmanyhoursofsleepdidyouhavelastnight}}</td><td>{{didyoueatbreakfastthismorning}}</tr>
             {{/rows}}
         </table>
     </script>
