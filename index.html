@@ -59,9 +59,23 @@
                 "tableDiv": "#hackSpotsTable"
             }
             Sheetsee.makeTable(tableOptions)
-            Sheetsee.initiateTableFilter(tableOptions)
+    	    Sheetsee.initiateTableFilter(tableOptions)
+        	// create the scatterplot categories
+	    var categories = {}
+	    var keys = Object.keys(gData[0])
+	    var rowNumIdx = keys.indexOf("rowNumber")
+	    keys.splice(rowNumIdx,1)
+	    var waiverIdx = keys.indexOf("iunderstandthattheinformationisubmitwillbeavailabletothegeneralpublic.")
+	    keys.splice(waiverIdx,1)
+	    var timeStampIdx = keys.indexOf("timestamp")
+	    keys.splice(timeStampIdx,1)
+	    keys.forEach(function(key) {
+		categories[key] = []
+	    });
+	    console.log("categories")
+	    console.log(categories)
 	    // make the scatterplot
-		var margin = {top: 20, right: 20, bottom: 30, left: 40},
+		var margin = {top: 40, right: 20, bottom: 40, left: 40},
 		    width = 800 - margin.left - margin.right,
 		    height = 400 - margin.top - margin.bottom;
 
@@ -74,18 +88,19 @@
 
 		// setup x - did you eat breakfast this morning
 		var xKey = "didyoueatbreakfastthismorning";
-		var xValue = function(d) { return categories[xKey].indexOf(d[xKey]);}, // data -> value
-		    xScale = d3.scale.linear().range([0, width]), // value -> display
+		var xValue = function(d) { return d[xKey];}, // data -> value
+		    xScale = d3.scale.ordinal().rangePoints([0,width]), // value -> display
 		    xMap = function(d) { return xScale(xValue(d));}, // data -> display
 		    xAxis = d3.svg.axis().scale(xScale).orient("bottom");
 
 		// setup y - my current skin temperature
+		//var yKey = "howmanyhoursofsleepdidyouhavelastnight";
 		var yKey = "mycurrentskintemperature";
-		var yValue = function(d) { return categories[yKey].indexOf(d[yKey])}, // data -> value
-		    yScale = d3.scale.linear().range([height, 0]), // value -> display
+		var yValue = function(d) { return d[yKey] }, // data -> value
+		    yScale = d3.scale.ordinal().rangePoints([0,height-5]), // value -> display
 		    yMap = function(d) { return yScale(yValue(d));}, // data -> display
 		    yAxis = d3.svg.axis().scale(yScale).orient("left");
-
+		console.log(yScale.range());
 		// setup fill color - Sex
 		var cValue = function(d) { return d.iam;},
 		    color = d3.scale.category10();
@@ -102,17 +117,6 @@
 		var tooltip = d3.select("#map").append("div")
 		    .attr("class", "tooltip")
 		    .style("opacity", 0);
-
-		// change string (from CSV) into number format
-		var categories = []
-		var keys = Object.keys(gData[0])
-		var rowNumIdx = keys.indexOf("rowNumber")
-		keys.splice(rowNumIdx,1)
-		var timeStampIdx = keys.indexOf("timestamp")
-		keys.splice(timeStampIdx,1)
-		keys.forEach(function(key) {
-			categories[key] = []
-		});
 		gData.forEach(function(d) {
 		    keys.forEach(function(key) {
 			if (d.hasOwnProperty(key) && !categories[key].includes(d[key])) {
@@ -123,12 +127,19 @@
 		console.log(categories)
 
 		  // don't want dots overlapping axis, so add in buffer to data domain
-		  xScale.domain([d3.min(gData, xValue)-1, d3.max(gData, xValue)+1]);
-		  yScale.domain([d3.min(gData, yValue)-1, d3.max(gData, yValue)+1]);
+		  //xScale.domain([d3.min(gData, xValue)-1, d3.max(gData, xValue)+1]);
+		  //yScale.domain([d3.min(gData, yValue)-1, d3.max(gData, yValue)+1]);
+		   yScale.domain(categories[yKey])
+		  xScale.domain(categories[xKey])
 
+
+		  function adjustTextLabels() {
+			selection.selectAll("text")
+			.attr("transform", 'translate(5,0)')
+		  }
 		  // x-axis
 		  svg.append("g")
-		      .attr("class", "x axis")
+		      .attr("class", "xAxis")
 		      .attr("transform", "translate(0," + height + ")")
 		      .call(xAxis)
 		    .append("text")
@@ -140,15 +151,22 @@
 
 		  // y-axis
 		  svg.append("g")
-		      .attr("class", "y axis")
+		      .attr("class", "yAxis")
 		      .call(yAxis)
+		    .selectAll("text")
+ 		      .attr("transform","rotate(90)")
+		      .attr("dx", 10)
+		      .attr("y", 20)
+		      .style("text-anchor","middle")
+
+		 svg.select(".yAxis")
 		    .append("text")
+ 		      .attr("transform","rotate(270)")
 		      .attr("class", "label")
-		      .attr("transform", "rotate(-90)")
 		      .attr("y", 6)
 		      .attr("dy", ".71em")
 		      .style("text-anchor", "end")
-		      .text("Current Skin Temperature");
+		      .text("Current Skin Temperature")
 
 		  // draw dots
 		  svg.selectAll(".dot")
