@@ -1,10 +1,11 @@
 <html>
     <head>
-        <title>Hack Spots</title>
+        <title>Health Data Trends</title>
         <meta charset='utf-8'>
         <script type="text/javascript" src='js/jquery.js '></script>
         <script type="text/javascript" src='js/tabletop1.3.4.js'></script>
         <script type="text/javascript" src='js/sheetsee.js'></script>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
         <link rel="shortcut icon" href="https://raw.github.com/jlord/hack-spots/master/favico.png"/>
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -17,36 +18,28 @@
     </head>
 <body>
     <div id="wrapper">
-        <h1>Hack Spots</h1>
+        <h1>Health Data Trends</h1>
         <div>
             <ul class="nav">
-                <li><strong>The collected favorites of those who hack</strong></li>
+                <li><strong>What can my data tell me about my health?</strong></li>
                 <li><a href="#info">INFO</a> -</li>
                 <li><a href="http://jlord.github.com/sheetsee.js" target="_blank">POWERED BY SHEETSEE.JS</a> -</li>
-                <li><a href="http://www.github.com/jlord/hack-spots" target="_blank">GITHUB</a> -</li>
-                <li><a href="http://www.twitter.com/jllord" target="_blank">@JLLORD</a></li>
+                <li><a href="http://www.github.com/denisemauldin/hack-spots" target="_blank">GITHUB</a></li>
             </ul>
         </div>
         <div class="container">
-            <div id="rightSide">
-                <div id="latestSpot"></div>
-                <div id="selectedSpot"></div>
-            </div>
             <div id="map"></div>
         </div>
         <div class="container">
-            <input id="tableFilter" type="text" placeholder="filter by.."></input>
-            <span class="clear button">Clear</span> <span class="resetMap button">Reset Map</span>
-            <span class="noMatches">no matches</span>
             <div id="hackSpotsTable"></div>
         </div>
    </div><!-- end wrapper -->
 
     <script id="hackSpotsTable" type="text/html">
         <table>
-   	<tr><th>My current skin temperature:</th><th>I am:</th><th>How many hours of sleep did you have last night?</th><th>Did you eat breakfast this morning?</tr>
+   	<tr><th>Birth Sex</th><th>My current skin temperature:</th><th>How many hours of sleep did you have last night?</th><th>Did you eat breakfast this morning?</tr>
             {{#rows}}
-                <tr id="{{rowNumber}}" class="spotRow"><td>{{mycurrentskintemperature}}</td><td>{{iam}}</td><td>{{howmanyhoursofsleepdidyouhavelastnight}}</td><td>{{didyoueatbreakfastthismorning}}</tr>
+                <tr id="{{rowNumber}}" class="spotRow"><td>{{iam}}</td><td>{{mycurrentskintemperature}}</td><td>{{howmanyhoursofsleepdidyouhavelastnight}}</td><td>{{didyoueatbreakfastthismorning}}</tr>
             {{/rows}}
         </table>
     </script>
@@ -60,33 +53,149 @@
 
         // so long, so messy
         function showInfo(gData) {
-	    console.log(gData)
+            // make the table
             tableOptions = {
                 "data": gData,
-                "tableDiv": "#hackSpotsTable",
-                "filterDiv": "#tableFilter"
+                "tableDiv": "#hackSpotsTable"
             }
-            // make the table, and the search bar
             Sheetsee.makeTable(tableOptions)
             Sheetsee.initiateTableFilter(tableOptions)
-            // so that the first map and info that loads
-            // is complete and doesn't show rows that are
-            // actively being edited by folk
-            function findLatestCompleteSpot(data) {
-                var latestCompleteSpot = []
-                var startWithLatestRow = data.reverse()
-                startWithLatestRow.forEach(function(row){
-                    if (!row.lat || !row.long || !row.name || !row.address || !row.city || !row.state ) return
-                    else latestCompleteSpot.push(row)
-                })
-                return latestCompleteSpot[0]
-            }
+	    // make the scatterplot
+		var margin = {top: 20, right: 20, bottom: 30, left: 40},
+		    width = 800 - margin.left - margin.right,
+		    height = 400 - margin.top - margin.bottom;
 
-            if(window.location.hash) {
-                $('#tableFilter').val(window.location.hash.substring(1)).keyup()
-                $('.spotRow').first().click()
-            }
-        }
+		/* 
+		 * value accessor - returns the value to encode for a given data object.
+		 * scale - maps value to a visual display encoding, such as a pixel position.
+		 * map function - maps from data value to display value
+		 * axis - sets up axis
+		 */ 
+
+		// setup x - did you eat breakfast this morning
+		var xKey = "didyoueatbreakfastthismorning";
+		var xValue = function(d) { return categories[xKey].indexOf(d[xKey]);}, // data -> value
+		    xScale = d3.scale.linear().range([0, width]), // value -> display
+		    xMap = function(d) { return xScale(xValue(d));}, // data -> display
+		    xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+
+		// setup y - my current skin temperature
+		var yKey = "mycurrentskintemperature";
+		var yValue = function(d) { return categories[yKey].indexOf(d[yKey])}, // data -> value
+		    yScale = d3.scale.linear().range([height, 0]), // value -> display
+		    yMap = function(d) { return yScale(yValue(d));}, // data -> display
+		    yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+		// setup fill color - Sex
+		var cValue = function(d) { return d.iam;},
+		    color = d3.scale.category10();
+
+		// add the graph canvas to the body of the webpage
+		var svg = d3.select("#map").append("svg")
+		    .attr("class", "scatter")
+		    .attr("width", width + margin.left + margin.right)
+		    .attr("height", height + margin.top + margin.bottom)
+		  .append("g")
+		    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		// add the tooltip area to the webpage
+		var tooltip = d3.select("#map").append("div")
+		    .attr("class", "tooltip")
+		    .style("opacity", 0);
+
+		// change string (from CSV) into number format
+		var categories = []
+		var keys = Object.keys(gData[0])
+		var rowNumIdx = keys.indexOf("rowNumber")
+		keys.splice(rowNumIdx,1)
+		var timeStampIdx = keys.indexOf("timestamp")
+		keys.splice(timeStampIdx,1)
+		keys.forEach(function(key) {
+			categories[key] = []
+		});
+		gData.forEach(function(d) {
+		    keys.forEach(function(key) {
+			if (d.hasOwnProperty(key) && !categories[key].includes(d[key])) {
+				categories[key].push(d[key])
+			}
+		    });   
+		});
+		console.log(categories)
+
+		  // don't want dots overlapping axis, so add in buffer to data domain
+		  xScale.domain([d3.min(gData, xValue)-1, d3.max(gData, xValue)+1]);
+		  yScale.domain([d3.min(gData, yValue)-1, d3.max(gData, yValue)+1]);
+
+		  // x-axis
+		  svg.append("g")
+		      .attr("class", "x axis")
+		      .attr("transform", "translate(0," + height + ")")
+		      .call(xAxis)
+		    .append("text")
+		      .attr("class", "label")
+		      .attr("x", width)
+		      .attr("y", -6)
+		      .style("text-anchor", "end")
+		      .text("Did you eat breakfast this morning?");
+
+		  // y-axis
+		  svg.append("g")
+		      .attr("class", "y axis")
+		      .call(yAxis)
+		    .append("text")
+		      .attr("class", "label")
+		      .attr("transform", "rotate(-90)")
+		      .attr("y", 6)
+		      .attr("dy", ".71em")
+		      .style("text-anchor", "end")
+		      .text("Current Skin Temperature");
+
+		  // draw dots
+		  svg.selectAll(".dot")
+		      .data(gData)
+		    .enter().append("circle")
+		      .attr("class", "dot")
+		      .attr("r", 3.5)
+		      .attr("cx", xMap)
+		      .attr("cy", yMap)
+		      .style("fill", function(d) { return color(cValue(d));}) 
+		      .on("mouseover", function(d) {
+			  tooltip.transition()
+			       .duration(200)
+			       .style("opacity", .9);
+			  tooltip.html(d.iam + "<br/> (" + d[xKey] 
+				+ ", " + d[yKey] + ")")
+			       .style("left", (d3.event.pageX + 5) + "px")
+			       .style("top", (d3.event.pageY - 28) + "px");
+		      })
+		      .on("mouseout", function(d) {
+			  tooltip.transition()
+			       .duration(500)
+			       .style("opacity", 0);
+		      });
+
+		  // draw legend
+		  var legend = svg.selectAll(".legend")
+		      .data(color.domain())
+		    .enter().append("g")
+		      .attr("class", "legend")
+		      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+		  // draw legend colored rectangles
+		  legend.append("rect")
+		      .attr("x", width - 18)
+		      .attr("width", 18)
+		      .attr("height", 18)
+		      .style("fill", color);
+
+		  // draw legend text
+		  legend.append("text")
+		      .attr("x", width - 24)
+		      .attr("y", 9)
+		      .attr("dy", ".35em")
+		      .style("text-anchor", "end")
+		      .text(function(d) { return d;})
+		} // end showInfo
 
     </script>
 </body>
