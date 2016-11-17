@@ -20,8 +20,8 @@ code {font-family: "Consolas", "Ubuntu Mono", monospace; line-height: 22px; font
 
 .red-text {color: #FD9393;}
 
-#map {height: 450px; max-width: 800px; min-width: 300px; background: #DADADA;}
-#map a {border: none;}
+#hdScatter {height: 450px; max-width: 800px; min-width: 300px; background: #DADADA;}
+#hdScatter a {border: none;}
 .yAxis text {
   font: 10px sans-serif;
 }

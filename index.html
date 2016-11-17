@@ -27,7 +27,8 @@
             </ul>
         </div>
         <div class="container">
-            <div id="map"></div>
+	    <div id="hdControls" style="border: 1px solid red;"></div>
+            <div id="hdScatter"></div>
         </div>
         <div class="container">
             <div id="healthDataTable"></div>
@@ -44,14 +45,20 @@
     </script>
 
     <script type="text/javascript">
+        var URL = "1yWvTfewrIAj_JkO9rsDzp4uv4zaBPP80x1R4YHUHg90"
         document.addEventListener('DOMContentLoaded', function() {
-            var gData
-            var URL = "1yWvTfewrIAj_JkO9rsDzp4uv4zaBPP80x1R4YHUHg90"
-                Tabletop.init({ key: URL, callback: showInfo, simpleSheet: true })
+            Tabletop.init({ key: URL, callback: showInfo, simpleSheet: true })
         })
 
+
         // so long, so messy
-        function showInfo(gData) {
+        function showInfo(gData,tableTop,xKey,yKey) {
+	    xKey = xKey || "didyoueatbreakfastthismorning";
+	    yKey = yKey || "mycurrentskintemperature";
+	    console.log("gdata")
+	    console.log(gData)
+            console.log(xKey)
+	    console.log(yKey)
             // make the table
             tableOptions = {
                 "data": gData,
@@ -71,7 +78,13 @@
 	    keys.forEach(function(key) {
 		categories[key] = []
 	    });
-	    // make the scatterplot
+	    var readableString = {
+				 "mycurrentskintemperature": "My Current Skin Temperature",
+				 "howmanyhoursofsleepdidyouhavelastnight":"How many hours of sleep did you have last night?",
+				 "didyoueatbreakfastthismorning": "Did you eat breakfast this morning?",
+				 "iam": "Birth Sex"
+				}
+               // make the scatterplot
 		var margin = {top: 40, right: 20, bottom: 40, left: 40},
 		    width = 800 - margin.left - margin.right,
 		    height = 400 - margin.top - margin.bottom;
@@ -79,12 +92,11 @@
 		/* 
 		 * value accessor - returns the value to encode for a given data object.
 		 * scale - maps value to a visual display encoding, such as a pixel position.
-		 * map function - maps from data value to display value
+		 * hdScatter function - maps from data value to display value
 		 * axis - sets up axis
 		 */ 
 
 		// setup x - did you eat breakfast this morning
-		var xKey = "didyoueatbreakfastthismorning";
 		var xValue = function(d) { return d[xKey];}, // data -> value
 		    xScale = d3.scale.ordinal().rangePoints([0,width-5],1), // value -> display
 		    xMap = function(d) { return xScale(xValue(d));}, // data -> display
@@ -92,7 +104,6 @@
 
 		// setup y - my current skin temperature
 		//var yKey = "howmanyhoursofsleepdidyouhavelastnight";
-		var yKey = "mycurrentskintemperature";
 		var yValue = function(d) { return d[yKey] }, // data -> value
 		    yScale = d3.scale.ordinal().rangePoints([0,height-5],1), // value -> display
 		    yMap = function(d) { return yScale(yValue(d));}, // data -> display
@@ -101,8 +112,34 @@
 		var cValue = function(d) { return d.iam;},
 		    color = d3.scale.category10();
 
+		// add a selectbox for the xAxis key
+	    function addSelectBox(parentId, opts, elemId,selectedVal) {
+               var parent = document.getElementById(parentId);
+               var selectElement = document.createElement("select");
+	       selectElement.setAttribute("id",elemId);
+               for (var i=0; i< opts.length; i++) {
+                 var option = new Option(readableString[opts[i]], opts[i])
+                 selectElement.options[selectElement.options.length] = option;
+	       }
+	       selectElement.value = selectedVal
+               parent.appendChild(selectElement);
+	       
+	    }
+	    addSelectBox("hdControls",keys, "xAxisSelect", xKey);
+	    addSelectBox("hdControls",keys, "yAxisSelect", yKey);
+            document.getElementById("xAxisSelect").addEventListener("change", changeAxis);
+
+	   function changeAxis(t){
+	    console.log("changeAxis")
+	    var xSelect = document.getElementById("xAxisSelect");
+	    var xNKey = xSelect[xSelect.selectedIndex].value;
+	    var ySelect = document.getElementById("yAxisSelect");
+	    var yNKey = ySelect[ySelect.selectedIndex].value;
+	    showInfo(gData,tableTop,xNKey,yNKey)
+	   }
+	    
 		// add the graph canvas to the body of the webpage
-		var svg = d3.select("#map").append("svg")
+		var svg = d3.select("#hdScatter").append("svg")
 		    .attr("class", "scatter")
 		    .attr("width", width + margin.left + margin.right)
 		    .attr("height", height + margin.top + margin.bottom)
@@ -110,7 +147,7 @@
 		    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 		// add the tooltip area to the webpage
-		var tooltip = d3.select("#map").append("div")
+		var tooltip = d3.select("#hdScatter").append("div")
 		    .attr("class", "tooltip")
 		    .style("opacity", 0);
 		gData.forEach(function(d) {
@@ -121,17 +158,10 @@
 		    });   
 		});
 
-		  // don't want dots overlapping axis, so add in buffer to data domain
-		  //xScale.domain([d3.min(gData, xValue)-1, d3.max(gData, xValue)+1]);
-		  //yScale.domain([d3.min(gData, yValue)-1, d3.max(gData, yValue)+1]);
-		   yScale.domain(categories[yKey])
+		  yScale.domain(categories[yKey])
 		  xScale.domain(categories[xKey])
 
 
-		  function adjustTextLabels() {
-			selection.selectAll("text")
-			.attr("transform", 'translate(5,0)')
-		  }
 		  // x-axis
 		  svg.append("g")
 		      .attr("class", "xAxis")
