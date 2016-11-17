@@ -6,7 +6,6 @@
         <script type="text/javascript" src='js/tabletop1.3.4.js'></script>
         <script type="text/javascript" src='js/sheetsee.js'></script>
 	<script src="https://d3js.org/d3.v3.min.js"></script>
-        <link rel="shortcut icon" href="https://raw.github.com/jlord/hack-spots/master/favico.png"/>
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <link rel='stylesheet' type='text/css' href='https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic'>
@@ -24,18 +23,18 @@
                 <li><strong>What can my data tell me about my health?</strong></li>
                 <li><a href="#info">INFO</a> -</li>
                 <li><a href="http://jlord.github.com/sheetsee.js" target="_blank">POWERED BY SHEETSEE.JS</a> -</li>
-                <li><a href="http://www.github.com/denisemauldin/hack-spots" target="_blank">GITHUB</a></li>
+                <li><a href="http://www.github.com/denisemauldin/health-data" target="_blank">GITHUB</a></li>
             </ul>
         </div>
         <div class="container">
             <div id="map"></div>
         </div>
         <div class="container">
-            <div id="hackSpotsTable"></div>
+            <div id="healthDataTable"></div>
         </div>
    </div><!-- end wrapper -->
 
-    <script id="hackSpotsTable" type="text/html">
+    <script id="healthDataTable" type="text/html">
         <table>
    	<tr><th>Birth Sex</th><th>My current skin temperature:</th><th>How many hours of sleep did you have last night?</th><th>Did you eat breakfast this morning?</tr>
             {{#rows}}
@@ -56,7 +55,7 @@
             // make the table
             tableOptions = {
                 "data": gData,
-                "tableDiv": "#hackSpotsTable"
+                "tableDiv": "#healthDataTable"
             }
             Sheetsee.makeTable(tableOptions)
     	    Sheetsee.initiateTableFilter(tableOptions)
@@ -87,7 +86,7 @@
 		// setup x - did you eat breakfast this morning
 		var xKey = "didyoueatbreakfastthismorning";
 		var xValue = function(d) { return d[xKey];}, // data -> value
-		    xScale = d3.scale.ordinal().rangePoints([0,width]), // value -> display
+		    xScale = d3.scale.ordinal().rangePoints([0,width-5],1), // value -> display
 		    xMap = function(d) { return xScale(xValue(d));}, // data -> display
 		    xAxis = d3.svg.axis().scale(xScale).orient("bottom");
 
@@ -95,7 +94,7 @@
 		//var yKey = "howmanyhoursofsleepdidyouhavelastnight";
 		var yKey = "mycurrentskintemperature";
 		var yValue = function(d) { return d[yKey] }, // data -> value
-		    yScale = d3.scale.ordinal().rangePoints([0,height-5]), // value -> display
+		    yScale = d3.scale.ordinal().rangePoints([0,height-5],1), // value -> display
 		    yMap = function(d) { return yScale(yValue(d));}, // data -> display
 		    yAxis = d3.svg.axis().scale(yScale).orient("left");
 		// setup fill color - Sex
@@ -158,7 +157,7 @@
 		 svg.select(".yAxis")
 		    .append("text")
  		      .attr("transform","rotate(270)")
-		      .attr("class", "label")
+		      .attr("class", "yAxisLabel")
 		      .attr("y", 6)
 		      .attr("dy", ".71em")
 		      .style("text-anchor", "end")
