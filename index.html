@@ -27,7 +27,7 @@
             </ul>
         </div>
         <div class="container">
-	    <div id="hdControls" style="border: 1px solid red;"></div>
+	    <div id="hdControls"></div>
             <div id="hdScatter"></div>
         </div>
         <div class="container">
@@ -50,15 +50,36 @@
             Tabletop.init({ key: URL, callback: showInfo, simpleSheet: true })
         })
 
+	// This shouldn't be hard coded, but there are limitations to the google spreadsheet?
+	    var readableString = {
+				 "mycurrentskintemperature": "My Current Skin Temperature",
+				 "howmanyhoursofsleepdidyouhavelastnight":"How many hours of sleep did you have last night?",
+				 "didyoueatbreakfastthismorning": "Did you eat breakfast this morning?",
+				 "iam": "Birth Sex"
+				}
+ 
+	    function addSelectBox(parentId, opts, elemId,selectedVal) {
+               var parent = document.getElementById(parentId);
+               var selectElement = document.createElement("select");
+	       selectElement.setAttribute("id",elemId);
+               for (var i=0; i< opts.length; i++) {
+                 var option = new Option(readableString[opts[i]], opts[i])
+                 selectElement.options[selectElement.options.length] = option;
+	       }
+	       selectElement.value = selectedVal
+               parent.appendChild(selectElement);
+	       
+	    }
+	var removeKeys = ["rowNumber", "iunderstandthattheinformationisubmitwillbeavailabletothegeneralpublic.", "timestamp"]
+	var margin = {top: 40, right: 20, bottom: 40, left: 40},
+	    width = 800 - margin.left - margin.right,
+	    height = 400 - margin.top - margin.bottom;
 
+		
         // so long, so messy
         function showInfo(gData,tableTop,xKey,yKey) {
 	    xKey = xKey || "didyoueatbreakfastthismorning";
 	    yKey = yKey || "mycurrentskintemperature";
-	    console.log("gdata")
-	    console.log(gData)
-            console.log(xKey)
-	    console.log(yKey)
             // make the table
             tableOptions = {
                 "data": gData,
@@ -66,37 +87,19 @@
             }
             Sheetsee.makeTable(tableOptions)
     	    Sheetsee.initiateTableFilter(tableOptions)
-        	// create the scatterplot categories
+
+      	    // create the scatterplot categories
 	    var categories = {}
 	    var keys = Object.keys(gData[0])
-	    var rowNumIdx = keys.indexOf("rowNumber")
-	    keys.splice(rowNumIdx,1)
-	    var waiverIdx = keys.indexOf("iunderstandthattheinformationisubmitwillbeavailabletothegeneralpublic.")
-	    keys.splice(waiverIdx,1)
-	    var timeStampIdx = keys.indexOf("timestamp")
-	    keys.splice(timeStampIdx,1)
+	    removeKeys.forEach(function(rm) {
+		var rmIdx = keys.indexOf(rm)
+		keys.splice(rmIdx,1)
+	    });
 	    keys.forEach(function(key) {
 		categories[key] = []
 	    });
-	    var readableString = {
-				 "mycurrentskintemperature": "My Current Skin Temperature",
-				 "howmanyhoursofsleepdidyouhavelastnight":"How many hours of sleep did you have last night?",
-				 "didyoueatbreakfastthismorning": "Did you eat breakfast this morning?",
-				 "iam": "Birth Sex"
-				}
-               // make the scatterplot
-		var margin = {top: 40, right: 20, bottom: 40, left: 40},
-		    width = 800 - margin.left - margin.right,
-		    height = 400 - margin.top - margin.bottom;
 
-		/* 
-		 * value accessor - returns the value to encode for a given data object.
-		 * scale - maps value to a visual display encoding, such as a pixel position.
-		 * hdScatter function - maps from data value to display value
-		 * axis - sets up axis
-		 */ 
-
-		// setup x - did you eat breakfast this morning
+	    // setup x - did you eat breakfast this morning
 		var xValue = function(d) { return d[xKey];}, // data -> value
 		    xScale = d3.scale.ordinal().rangePoints([0,width-5],1), // value -> display
 		    xMap = function(d) { return xScale(xValue(d));}, // data -> display
@@ -112,22 +115,11 @@
 		var cValue = function(d) { return d.iam;},
 		    color = d3.scale.category10();
 
-		// add a selectbox for the xAxis key
-	    function addSelectBox(parentId, opts, elemId,selectedVal) {
-               var parent = document.getElementById(parentId);
-               var selectElement = document.createElement("select");
-	       selectElement.setAttribute("id",elemId);
-               for (var i=0; i< opts.length; i++) {
-                 var option = new Option(readableString[opts[i]], opts[i])
-                 selectElement.options[selectElement.options.length] = option;
-	       }
-	       selectElement.value = selectedVal
-               parent.appendChild(selectElement);
-	       
-	    }
+	    // add a selectbox for the xAxis key
 	    addSelectBox("hdControls",keys, "xAxisSelect", xKey);
 	    addSelectBox("hdControls",keys, "yAxisSelect", yKey);
             document.getElementById("xAxisSelect").addEventListener("change", changeAxis);
+            document.getElementById("yAxisSelect").addEventListener("change", changeAxis);
 
 	   function changeAxis(t){
 	    console.log("changeAxis")
@@ -135,7 +127,8 @@
 	    var xNKey = xSelect[xSelect.selectedIndex].value;
 	    var ySelect = document.getElementById("yAxisSelect");
 	    var yNKey = ySelect[ySelect.selectedIndex].value;
-	    showInfo(gData,tableTop,xNKey,yNKey)
+	    console.log("changing x to "+xNKey+" and y to "+yNKey)
+	    updateInfo(gData,tableTop,categories[xNKey], categories[yNKey], xNKey, yNKey)
 	   }
 	    
 		// add the graph canvas to the body of the webpage
@@ -150,6 +143,7 @@
 		var tooltip = d3.select("#hdScatter").append("div")
 		    .attr("class", "tooltip")
 		    .style("opacity", 0);
+
 		gData.forEach(function(d) {
 		    keys.forEach(function(key) {
 			if (d.hasOwnProperty(key) && !categories[key].includes(d[key])) {
@@ -158,8 +152,8 @@
 		    });   
 		});
 
-		  yScale.domain(categories[yKey])
-		  xScale.domain(categories[xKey])
+		yScale.domain(categories[yKey])
+		xScale.domain(categories[xKey])
 
 
 		  // x-axis
@@ -168,7 +162,7 @@
 		      .attr("transform", "translate(0," + height + ")")
 		      .call(xAxis)
 		    .append("text")
-		      .attr("class", "label")
+		      .attr("class", "xAxisLabel")
 		      .attr("x", width)
 		      .attr("y", -6)
 		      .style("text-anchor", "end")
@@ -186,12 +180,11 @@
 
 		 svg.select(".yAxis")
 		    .append("text")
- 		      .attr("transform","rotate(270)")
+ 		      .attr("transform","rotate(90)")
 		      .attr("class", "yAxisLabel")
-		      .attr("y", 6)
-		      .attr("dy", ".71em")
-		      .style("text-anchor", "end")
-		      .text("Current Skin Temperature")
+		      .attr("y", -10)
+		      .style("text-anchor", "start")
+		      .text(readableString[yKey])
 
 		  // draw dots
 		  svg.selectAll(".dot")
@@ -239,6 +232,79 @@
 		      .style("text-anchor", "end")
 		      .text(function(d) { return d;})
 		} // end showInfo
+
+	function updateInfo(gData, tableTop, xDomain, yDomain, xKey, yKey) {
+		var xValue = function(d) { return d[xKey];}, 
+		    xScale = d3.scale.ordinal().rangePoints([0,width-5],1),
+		    xMap = function(d) { return xScale(xValue(d));}, 
+		    xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+
+		var yValue = function(d) { return d[yKey] },
+		    yScale = d3.scale.ordinal().rangePoints([0,height-5],1), 
+		    yMap = function(d) { return yScale(yValue(d));}, 
+		    yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+		// setup fill color - Sex
+		var cValue = function(d) { return d.iam;},
+		    color = d3.scale.category10();
+
+		xScale.domain(xDomain)
+		yScale.domain(yDomain)
+
+		var svg = d3.select("#hdScatter").transition();
+
+		svg.select(".yAxis")
+			.duration(750)
+			.call(yAxis)
+			.selectAll("text")
+ 		      .attr("transform","rotate(90)")
+		      .attr("dx", 10)
+		      .attr("y", 20)
+		      .style("text-anchor","middle")
+	
+		 svg.select(".yAxisLabel")
+ 		      .attr("transform","rotate(90)")
+		      .attr("y", -10)
+		      .style("text-anchor", "start")
+		      .text(readableString[yKey])
+
+		svg.select(".xAxis")
+			.duration(750)
+			.call(xAxis)
+
+		svg.select(".xAxisLabel")
+		      .attr("x", width)
+		      .attr("y", -6)
+		      .style("text-anchor", "end")
+		      .text(readableString[xKey]);
+
+		d3.selectAll(".dot")
+			.data(gData)//, function(d) { console.log(d); return d; })
+			.transition()
+			.duration(750)
+			.each("start", function() {
+				d3.select(this)
+					.attr("fill","red")
+					.attr("r",5);
+			})
+			.delay(function(d,i) {
+				return i / gData.length * 500;
+			})
+			.attr("cx", function(d) {
+				return xScale(d[xKey]);
+			})
+			.attr("cy", function(d) {
+				return yScale(d[yKey]);
+			})
+			.each("end", function(){
+				d3.select(this)
+					.transition()
+					.duration(500)
+					.attr("fill", function(d) { return color(cValue(d));})
+					.attr("r",3);
+			})
+					
+	}
 
     </script>
 </body>
