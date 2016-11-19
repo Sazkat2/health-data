@@ -22,7 +22,7 @@
         <div>
             <ul class="nav">
                 <li><strong>What can my data tell me about my health?</strong></li>
-                <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSelmP0fqBUcR6NY6UfurDkzqSaYnC8UIXis3r7HMA01L-D4hg/viewform">ANSWER SURVEY</a> -</li>
+                <li><a href="#info">INFO</a> -</li>
                 <li><a href="http://jlord.github.com/sheetsee.js" target="_blank">POWERED BY SHEETSEE.JS</a> -</li>
                 <li><a href="http://www.github.com/denisemauldin/health-data" target="_blank">GITHUB</a></li>
             </ul>
@@ -31,8 +31,28 @@
             <div id="hdControls"></div>
             <div id="hdScatter"></div>
         </div>
+        <div class="container">
+            <div id="healthDataTable"></div>
+        </div>
     </div>
     <!-- end wrapper -->
+
+    <script id="healthDataTable" type="text/html">
+        <table>
+            <tr>
+                <th>Birth Sex</th>
+                <th>My current skin temperature:</th>
+                <th>How many hours of sleep did you have last night?</th>
+                <th>Did you eat breakfast this morning?</tr>
+            {{#rows}}
+            <tr id="{{rowNumber}}" class="spotRow">
+                <td>{{iam}}</td>
+                <td>{{mycurrentskintemperature}}</td>
+                <td>{{howmanyhoursofsleepdidyouhavelastnight}}</td>
+                <td>{{didyoueatbreakfastthismorning}}</tr>
+            {{/rows}}
+        </table>
+    </script>
 
     <script type="text/javascript">
         var URL = "1yWvTfewrIAj_JkO9rsDzp4uv4zaBPP80x1R4YHUHg90"
