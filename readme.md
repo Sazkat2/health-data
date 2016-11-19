@@ -1,8 +1,6 @@
-# Hi!
+# Health Data
 
-![screenshot](https://raw.github.com/jlord/hack-spots/gh-pages/img/hackspotsss.png)
-
-This is the code for a website that shows the spots myself, my friends (or Twitter friends) have found to be excellent hacking spots around the whole wide world.
+This is code for a survey site that uses Google Spreadsheet data to display a scatterplot using D3.
 
 ### Fork -n- Go!
 
