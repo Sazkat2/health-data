@@ -6,7 +6,7 @@ var readableString = {
     "iam": "Birth Sex"
 }
 
-function addSelectBox(parentId, opts, elemId, selectedVal) {
+function addSelectBox(parentId, opts, elemId, selectedVal, label) {
     var parent = document.getElementById(parentId);
     var selectElement = document.createElement("select");
     selectElement.setAttribute("id", elemId);
@@ -14,7 +14,11 @@ function addSelectBox(parentId, opts, elemId, selectedVal) {
         var option = new Option(readableString[opts[i]], opts[i])
         selectElement.options[selectElement.options.length] = option;
     }
+    var labelElem = document.createElement("label");
+    labelElem.setAttribute("for", elemId);
+    labelElem.innerHTML = label
     selectElement.value = selectedVal
+    parent.appendChild(labelElem);
     parent.appendChild(selectElement);
 
 }
@@ -89,8 +93,8 @@ function showInfo(gData, tableTop, xKey, yKey) {
         .gravity(0)
         .chargeDistance(20);
     // add a selectbox for the xAxis key
-    addSelectBox("hdControls", keys, "xAxisSelect", xKey);
-    addSelectBox("hdControls", keys, "yAxisSelect", yKey);
+    addSelectBox("hdControls", keys, "xAxisSelect", xKey, "X Axis:");
+    addSelectBox("hdControls", keys, "yAxisSelect", yKey, "Y Axis:");
     document.getElementById("xAxisSelect").addEventListener("change", changeAxis);
     document.getElementById("yAxisSelect").addEventListener("change", changeAxis);
 
