@@ -5,6 +5,12 @@ var readableString = {
     "didyoueatbreakfastthismorning": "Did you eat breakfast this morning?",
     "iam": "Birth Sex"
 }
+var colorKey = "iam";
+var sortKeys = [ "howmanyhoursofsleepdidyouhavelastnight" ]
+var defaultX = "didyoueatbreafkastthismorning";
+var defaultY = "mycurrentskintemperature";
+var toolTipKey = "iam";
+var removeKeys = ["rowNumber", "iunderstandthattheinformationisubmitwillbeavailabletothegeneralpublic.", "timestamp"]
 
 function addSelectBox(parentId, opts, elemId, selectedVal, label) {
     var parent = document.getElementById(parentId);
@@ -25,7 +31,6 @@ function addSelectBox(parentId, opts, elemId, selectedVal, label) {
     }
 }
 
-var removeKeys = ["rowNumber", "iunderstandthattheinformationisubmitwillbeavailabletothegeneralpublic.", "timestamp"]
    var margin = {
         top: 40,
         right: 20,
@@ -41,8 +46,8 @@ function showInfo(gData, tableTop, xKey, yKey) {
     padding = 1,
     radius = 6;
 
-    xKey = xKey || "didyoueatbreakfastthismorning";
-    yKey = yKey || "mycurrentskintemperature";
+    xKey = xKey || defaultX;
+    yKey = yKey || defaultY;
     // make the table
     tableOptions = {
         "data": gData,
@@ -64,7 +69,7 @@ function showInfo(gData, tableTop, xKey, yKey) {
         counts[key] = []
     });
 
-    // setup x - did you eat breakfast this morning
+    // setup x 
     var xValue = function(d) {
             return d[xKey];
         }, // data -> value
@@ -74,8 +79,7 @@ function showInfo(gData, tableTop, xKey, yKey) {
         }, // data -> display
         xAxis = d3.svg.axis().scale(xScale).orient("bottom");
 
-    // setup y - my current skin temperature
-    //var yKey = "howmanyhoursofsleepdidyouhavelastnight";
+    // setup y 
     var yValue = function(d) {
             return d[yKey]
         }, // data -> value
@@ -84,9 +88,9 @@ function showInfo(gData, tableTop, xKey, yKey) {
             return yScale(yValue(d));
         }, // data -> display
         yAxis = d3.svg.axis().scale(yScale).orient("left");
-    // setup fill color - Sex
+    // setup fill color 
     var cValue = function(d) {
-            return d.iam;
+            return d[colorKey];
         },
         color = d3.scale.category10();
     var force = d3.layout.force()
@@ -138,11 +142,11 @@ function showInfo(gData, tableTop, xKey, yKey) {
                     counts[key][d[key]] += 1
                 }
             }
-			if (key == "howmanyhoursofsleepdidyouhavelastnight") {
+			if (sortKeys.includes(key)) {
 				catSort = categories[key].sort()
 				categories[key] = catSort;
 			}
-			if (key == "didyoueatbreakfastthismorning") {
+			if (categories[key] == ["No", "Yes"]) {
 				categories[key] = ["Yes", "No"]
 			}
         });
@@ -196,7 +200,7 @@ function showInfo(gData, tableTop, xKey, yKey) {
             tooltip.transition()
                 .duration(200)
                 .style("opacity", .9);
-            tooltip.html(d.iam + "<br/> (" + d[xKey] +
+            tooltip.html(d[toolTipKey] + "<br/> (" + d[xKey] +
                     " - " + counts[xKey][d[xKey]] + ")<br/>" +
                     "(" + d[yKey] + " - " + counts[yKey][d[yKey]] + ")")
                 .style("left", (d3.event.pageX + 5) + "px")
@@ -238,7 +242,7 @@ function showInfo(gData, tableTop, xKey, yKey) {
     gData.forEach(function(d) {
         d.x = xScale(d[xKey]);
         d.y = yScale(d[yKey]);
-        d.color = color(d.iam);
+        d.color = color(d[colorKey]);
         d.radius = radius;
     });
 
@@ -323,7 +327,7 @@ function updateInfo(gData, tableTop, xDomain, yDomain, xKey, yKey) {
 
     // setup fill color - Sex
     var cValue = function(d) {
-            return d.iam;
+            return d[colorKey];
         },
         color = d3.scale.category10();
 
