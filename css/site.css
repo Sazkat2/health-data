@@ -24,7 +24,7 @@ code {font-family: "Consolas", "Ubuntu Mono", monospace; line-height: 22px; font
 
 #hdControls { padding-bottom: 10px; }
 select { margin-right: 20px; }
-#hdScatter {height: 400px; max-width: 800px; min-width: 300px; background: #DADADA;}
+#hdScatter {height: 400px; width: 100%; background: #DADADA; margin: 0px auto;}
 #hdScatter a {border: none;}
 .yAxis text {
   font: 10px sans-serif;
@@ -64,14 +64,6 @@ ul.nav li a:hover {border-bottom: 1px #FD9393 solid;}
 #info p {font-size: 14px; padding: 4px; line-height: 19px; font-weight: 300;}
 #info {border-top: 4px #F8F8F8 solid;}
 
-#healthDataTable {cursor: pointer; background: #fff; overflow-x: auto; padding-bottom: 20px;}
-#healthDataTable table {min-width: 900px;}
-#healthDataTable .tHeader:hover {color: #FF4646;}
-.tHeader::after {content: " \2193 \2191 "; font-size: 10px; padding-left: 3px;}
-.spotRow:hover {color: #FF4646;}
-.spotRow {border-left: 3px solid #ff00ff;}
-.hideRow {display: none;}
-.selectedRow {color: #FF4C0D;}
 
 @media only screen and (-webkit-min-device-pixel-ratio: 2) and (min-width: 320px) and (max-width: 1024px) {
   body {border: 20px #F8F8F8 solid; margin: 0px; padding: 20px 20px 80px 20px;}

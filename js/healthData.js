@@ -20,23 +20,27 @@ function addSelectBox(parentId, opts, elemId, selectedVal, label) {
     selectElement.value = selectedVal
     parent.appendChild(labelElem);
     parent.appendChild(selectElement);
-
+    if (parseInt(d3.select('#wrapper').style('width'),10) < 800) {
+      parent.appendChild(document.createElement("br"));
+    }
 }
+
 var removeKeys = ["rowNumber", "iunderstandthattheinformationisubmitwillbeavailabletothegeneralpublic.", "timestamp"]
-var margin = {
+   var margin = {
         top: 40,
         right: 20,
         bottom: 40,
         left: 40
-    },
-    width = 800 - margin.left - margin.right,
+    }
+
+// so long, so messy
+function showInfo(gData, tableTop, xKey, yKey) {
+    //width = 400 - margin.left - margin.right,
+    width = parseInt(d3.select('#hdScatter').style('width'),10) - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom,
     padding = 1,
     radius = 6;
 
-
-// so long, so messy
-function showInfo(gData, tableTop, xKey, yKey) {
     xKey = xKey || "didyoueatbreakfastthismorning";
     yKey = yKey || "mycurrentskintemperature";
     // make the table
@@ -108,7 +112,9 @@ function showInfo(gData, tableTop, xKey, yKey) {
 
     // add the graph canvas to the body of the webpage
     var svg = d3.select("#hdScatter").append("svg")
+	.attr("preserveAspectRatio", "xMinYMin meet")
         .attr("class", "scatter")
+        .attr("id", "scatter")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
@@ -279,6 +285,9 @@ function showInfo(gData, tableTop, xKey, yKey) {
 } // end showInfo
 
 function updateInfo(gData, tableTop, xDomain, yDomain, xKey, yKey) {
+
+    var width = parseInt(d3.select('#hdScatter').style('width'),10) - margin.left - margin.right,
+    	height = parseInt(d3.select('#hdScatter').style('height'),10) - margin.left - margin.right;
     var xValue = function(d) {
             return d[xKey];
         },
@@ -342,7 +351,8 @@ function updateInfo(gData, tableTop, xDomain, yDomain, xKey, yKey) {
         .text(readableString[xKey]);
 
     var node = d3.selectAll(".dot")
-        .data(gData)
+        .data(gData);
+
     force.start();
 
     function tick(e) {
