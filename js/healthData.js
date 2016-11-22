@@ -145,15 +145,19 @@ function showInfo(gData, tableTop, xKey, yKey) {
                     counts[key][d[key]] += 1
                 }
             }
-			if (sortKeys.includes(key)) {
-				catSort = categories[key].sort()
-				categories[key] = catSort;
-			}
-			if (categories[key] == ["No", "Yes"]) {
-				categories[key] = ["Yes", "No"]
-			}
+
         });
     });
+
+	keys.forEach(function(key) {
+		if (sortKeys.includes(key)) {
+			catSort = categories[key].sort()
+			categories[key] = catSort;
+		}
+		if (JSON.stringify(categories[key]) == JSON.stringify(["No", "Yes"])) {
+			categories[key] = ["Yes", "No"]
+		}
+	});
     yScale.domain(categories[yKey])
     xScale.domain(categories[xKey])
 
