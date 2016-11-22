@@ -142,6 +142,8 @@ function showInfo(gData, tableTop, xKey, yKey) {
 				catSort = categories[key].sort()
 				categories[key] = catSort;
 			}
+			if (key == "didyoueatbreakfastthismorning") {
+				categories[key] = ["Yes", "No"]
         });
     });
     yScale.domain(categories[yKey])
