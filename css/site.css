@@ -24,7 +24,7 @@ code {font-family: "Consolas", "Ubuntu Mono", monospace; line-height: 22px; font
 
 #hdControls { padding-bottom: 10px; }
 select { margin-right: 20px; }
-#hdScatter {height: 400px; width: 100%; background: #DADADA; margin: 0px auto;}
+#hdScatter {height: 500px; width: 100%; background: #DADADA; margin: 0px auto;}
 #hdScatter a {border: none;}
 .yAxis text {
   font: 10px sans-serif;
@@ -54,12 +54,6 @@ ul.nav li a:hover {border-bottom: 1px #FD9393 solid;}
 .fauxButton .selected {background-color: #FF4646;}
 .colorText {color: #FF4646; text-transform: uppercase; font-weight: 700;}
 
-.leaflet-popup-content h2 {font-family: Open Sans; font-size: 14px; text-transform: uppercase;}
-
-#rightSide {height: 400px; max-width: 350px; width: 100%; float: right; padding-top: 5px;}
-#selectedSpot {display: none;}
-#latestSpot ul, #selectedSpot ul {list-style: none; margin-top: 12px 0px; padding: 0px;}
-.category {text-transform: uppercase; font-size: 9px; letter-spacing: .2em; padding-right: 6px;}
 
 #info p {font-size: 14px; padding: 4px; line-height: 19px; font-weight: 300;}
 #info {border-top: 4px #F8F8F8 solid;}

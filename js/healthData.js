@@ -37,7 +37,7 @@ var removeKeys = ["rowNumber", "iunderstandthattheinformationisubmitwillbeavaila
 function showInfo(gData, tableTop, xKey, yKey) {
     //width = 400 - margin.left - margin.right,
     width = parseInt(d3.select('#hdScatter').style('width'),10) - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom,
+    height = 500 - margin.top - margin.bottom,
     padding = 1,
     radius = 6;
 
