@@ -19,3 +19,4 @@
 /* Containers */
   .container {margin: 14px 0px;}
   #hdScatter {height: 450px; width: 800px; background: #DADADA;}
+  div.tooltip {position: absolute; text-align: left; padding: 4px 8px; width: auto; font-size: 10px; height: auto; background: #fff; border: 0px; pointer-events: none;}
