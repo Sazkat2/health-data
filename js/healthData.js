@@ -138,8 +138,10 @@ function showInfo(gData, tableTop, xKey, yKey) {
                     counts[key][d[key]] += 1
                 }
             }
-			catSort = categories[key].sort()
-			categories[key] = catSort;
+			if (key == "howmanyhoursofsleepdidyouhavelastnight") {
+				catSort = categories[key].sort()
+				categories[key] = catSort;
+			}
         });
     });
     yScale.domain(categories[yKey])
