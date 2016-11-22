@@ -7,7 +7,7 @@ var readableString = {
 }
 var colorKey = "iam";
 var sortKeys = [ "howmanyhoursofsleepdidyouhavelastnight" ]
-var defaultX = "didyoueatbreafkastthismorning";
+var defaultX = "didyoueatbreakfastthismorning";
 var defaultY = "mycurrentskintemperature";
 var toolTipKey = "iam";
 var removeKeys = ["rowNumber", "iunderstandthattheinformationisubmitwillbeavailabletothegeneralpublic.", "timestamp"]
@@ -56,6 +56,9 @@ function showInfo(gData, tableTop, xKey, yKey) {
     Sheetsee.makeTable(tableOptions)
     Sheetsee.initiateTableFilter(tableOptions)
 
+    if (gData[0] === undefined) {
+      d3.select("#hdScatter").append("h3").text("Unable to connect to Google spreadsheet.  Please try refreshing the page.");
+    }
     // create the scatterplot categories
     var categories = {}
     var counts = {}
@@ -111,7 +114,7 @@ function showInfo(gData, tableTop, xKey, yKey) {
         var xNKey = xSelect[xSelect.selectedIndex].value;
         var ySelect = document.getElementById("yAxisSelect");
         var yNKey = ySelect[ySelect.selectedIndex].value;
-        updateInfo(gData, tableTop, categories[xNKey], categories[yNKey], xNKey, yNKey)
+        updateInfo(gData, tableTop, counts, categories[xNKey], categories[yNKey], xNKey, yNKey)
     }
 
     // add the graph canvas to the body of the webpage
@@ -295,7 +298,7 @@ function showInfo(gData, tableTop, xKey, yKey) {
     }
 } // end showInfo
 
-function updateInfo(gData, tableTop, xDomain, yDomain, xKey, yKey) {
+function updateInfo(gData, tableTop, counts, xDomain, yDomain, xKey, yKey) {
 
     var width = parseInt(d3.select('#hdScatter').style('width'),10) - margin.left - margin.right,
     	height = parseInt(d3.select('#hdScatter').style('height'),10) - margin.left - margin.right;
@@ -361,8 +364,27 @@ function updateInfo(gData, tableTop, xDomain, yDomain, xKey, yKey) {
         .style("text-anchor", "end")
         .text(readableString[xKey]);
 
+    var tooltip = d3.select(".tooltip")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
     var node = d3.selectAll(".dot")
-        .data(gData);
+        .data(gData)
+	.on("mouseover", function(d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tooltip.html(d[toolTipKey] + "<br/> (" + d[xKey] +
+                    " - " + counts[xKey][d[xKey]] + ")<br/>" +
+                    "(" + d[yKey] + " - " + counts[yKey][d[yKey]] + ")")
+                .style("left", (d3.event.pageX + 5) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        })
+        .on("mouseout", function(d) {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });;
 
     force.start();
 
