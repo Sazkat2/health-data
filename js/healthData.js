@@ -144,6 +144,7 @@ function showInfo(gData, tableTop, xKey, yKey) {
 			}
 			if (key == "didyoueatbreakfastthismorning") {
 				categories[key] = ["Yes", "No"]
+			}
         });
     });
     yScale.domain(categories[yKey])
